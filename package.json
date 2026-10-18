@@ -1,0 +1,58 @@
+{
+  "name": "maaz-dawakhana-desktop",
+  "version": "1.0.7",
+  "description": "Maaz Dawakhana — BOM & Production Control for Windows. Local data, no login.",
+  "author": "Maaz Dawakhana",
+  "license": "MIT",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test:storage": "node electron/test-storage.js",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "jsdom": "^29.1.1",
+    "pe-library": "^2.0.1",
+    "resedit": "^3.0.2"
+  },
+  "build": {
+    "appId": "com.maazdawakhana.desktop",
+    "productName": "Maaz Dawakhana",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "app/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "compression": "normal",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Maaz Dawakhana",
+      "artifactName": "Maaz-Dawakhana-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh"
+    }
+  }
+}
