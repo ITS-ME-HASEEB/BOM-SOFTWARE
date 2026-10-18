@@ -43,7 +43,7 @@ jobs:
           # as an error annotation (percent-escaped) so the exact electron-
           # builder error can be read back through the Checks/annotations API.
           set +e
-          npm run dist 2>&1 | tee dist.log
+          npm run dist -- --publish never 2>&1 | tee dist.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             { echo '### electron-builder failure (last 80 log lines)'; echo '```'; tail -n 80 dist.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
