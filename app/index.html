@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Maaz Dawakhana | BOM &amp; Production</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="shortcut icon" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Applied before first paint so there is no light flash on reload.
+    (function () {
+      try {
+        var saved = localStorage.getItem('md-theme');
+        var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'dark' ? '#101512' : '#f4f1ea');
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <div class="window-bar" id="windowBar">
+      <div class="window-controls">
+        <button class="win-btn" id="winMin" type="button" title="Minimize" aria-label="Minimize">
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><line x1="0.5" y1="5" x2="9.5" y2="5" stroke="currentColor" stroke-width="1.2"/></svg>
+        </button>
+        <button class="win-btn" id="winMax" type="button" title="Maximize" aria-label="Maximize">
+          <svg class="icon-max" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          <svg class="icon-restore" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.2 3.2 h5.3 v5.3 h-5.3 z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3.2 3.2 h-1.2 v-2 h5.3 v1.2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+        </button>
+        <button class="win-btn win-close" id="winClose" type="button" title="Close" aria-label="Close">
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 1 L9 9 M9 1 L1 9" stroke="currentColor" stroke-width="1.2"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="app-body">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">MD</span><div><strong>Maaz Dawakhana</strong><small>production control</small></div></div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+        <button class="nav-item" data-view="bom"><span class="nav-icon">◈</span>BOM System</button>
+        <button class="nav-item" data-view="production"><span class="nav-icon">↗</span>Production Log</button>
+        <button class="nav-item" data-view="sales"><span class="nav-icon">⇥</span>Sales &amp; Inventory</button>
+        <button class="nav-item" data-view="inventory"><span class="nav-icon">▤</span>Inventory</button>
+        <button class="nav-item" data-view="raw"><span class="nav-icon">⬡</span>Raw Material</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="local-status" id="localStatus"><span class="status-dot"></span><span><strong>Local workspace</strong><small id="sidebarAccountEmail">Saved on this PC</small></span></div>
+        <div class="sidebar-actions">
+          <button class="text-button" id="sidebarBackup" type="button"><span aria-hidden="true">⇵</span> Backup &amp; restore…</button>
+          <button class="text-button" id="restoreData" type="button"><span aria-hidden="true">⬇</span> Restore (native)…</button>
+          <button class="text-button" data-theme-toggle type="button"><span class="theme-icon-light" aria-hidden="true">☾</span><span class="theme-icon-dark" aria-hidden="true">☀</span> <span>Dark mode</span></button>
+          <button class="text-button" id="dataLocation" type="button"><span aria-hidden="true">⌖</span> Data location…</button>
+          <button class="text-button" id="clearData" type="button">Reset workspace</button>
+        </div>
+        <small class="sidebar-note">No login needed — everything is saved in a local file.</small>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-title"><p class="eyebrow" id="viewEyebrow">OVERVIEW</p><h1 id="viewTitle">Good morning, operator.</h1></div>
+        <div class="topbar-actions">
+          <span class="today" id="todayLabel"></span>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode"><span class="theme-icon-light" aria-hidden="true">☾</span><span class="theme-icon-dark" aria-hidden="true">☀</span></button>
+          <button class="outline-button export-button" id="backupData" type="button"><span aria-hidden="true">⇵</span><span>Backup</span></button>
+          <button class="outline-button export-button" id="exportExcel" type="button"><span aria-hidden="true">⇩</span><span>Export Excel</span></button>
+          <button class="primary-button" id="quickAction" type="button">+ Add production</button>
+        </div>
+      </header>
+      <div id="appView"></div>
+    </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="modalBackdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-header"><div><p class="eyebrow" id="modalEyebrow">NEW ENTRY</p><h2 id="modalTitle">Add production</h2></div><button class="icon-button" id="closeModal" aria-label="Close">×</button></div><div id="modalBody"></div></section></div>
+  <div class="popover-backdrop" id="popoverBackdrop"></div>
+  <input type="file" id="restoreFileInput" accept=".json,application/json" class="hidden">
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="pdf-lib.min.js"></script>
+  <script src="exceljs.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
