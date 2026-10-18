@@ -1,4 +1,4 @@
-// main.js — Maaz Dawakhana for Windows (Electron main process)
+// main.js — Demo (BOM & Production) for Windows (Electron main process)
 'use strict';
 
 const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { createStorage } = require('./storage');
 
-const APP_NAME = 'Maaz Dawakhana';
+const APP_NAME = 'Demo';
 
 // Data lives in a "data" folder next to the installed app by preference.
 // If that folder is not writable (typical when installed under
@@ -16,10 +16,12 @@ function dataDir() {
   if (app.isPackaged) {
     return {
       preferredDir: path.join(path.dirname(process.execPath), 'data'),
-      fallbackDir: path.join(app.getPath('appData'), 'Maaz Dawakhana', 'data')
+      fallbackDir: path.join(app.getPath('appData'), 'Demo', 'data'),
+      // Data folder of pre-rebrand builds, scanned once during migration.
+      legacyDirs: [path.join(app.getPath('appData'), 'Maaz Dawakhana', 'data')]
     };
   }
-  return { preferredDir: path.join(__dirname, '..', 'data'), fallbackDir: null };
+  return { preferredDir: path.join(__dirname, '..', 'data'), fallbackDir: null, legacyDirs: [] };
 }
 
 const storage = createStorage(dataDir());
@@ -32,7 +34,7 @@ function createWindow() {
     height: 860,
     minWidth: 1080,
     minHeight: 680,
-    title: `${APP_NAME} — Production Control`,
+    title: `${APP_NAME} — BOM & Production`,
     icon: path.join(__dirname, '..', 'app', 'logo.png'),
     frame: false, // custom title bar with own minimize/maximize/close buttons
     transparent: true, // lets the CSS rounded corners + shadow show through
@@ -139,7 +141,7 @@ function buildMenu() {
           }
         },
         {
-          label: 'About Maaz Dawakhana',
+          label: 'About Demo',
           click: () => {
             dialog.showMessageBox(mainWindow, {
               type: 'info',
@@ -191,7 +193,7 @@ ipcMain.handle('desktop:backup', async (_event, payloadText) => {
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
       title: 'Backup data',
       defaultPath,
-      filters: [{ name: 'Maaz Dawakhana backup', extensions: ['json'] }]
+      filters: [{ name: 'Demo backup', extensions: ['json'] }]
     });
     if (canceled || !filePath) return { cancelled: true };
     const payload = storage.makeBackupPayload(data);
@@ -208,7 +210,7 @@ ipcMain.handle('desktop:restore', async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
       title: 'Restore data',
       filters: [
-        { name: 'Maaz Dawakhana backup or data JSON', extensions: ['json'] },
+        { name: 'Demo backup or data JSON', extensions: ['json'] },
         { name: 'All files', extensions: ['*'] }
       ],
       properties: ['openFile']
@@ -247,7 +249,7 @@ ipcMain.handle('desktop:savePdf', async (_event, bytes, saleId, customerName) =>
 // Optional print: open the PDF in a hidden window and send it to the system
 // print dialog. The temp file is removed as soon as the dialog closes.
 ipcMain.handle('desktop:printPdf', async (_event, bytes) => {
-  const tmpPath = path.join(app.getPath('temp'), `maaz-dawakhana-print-${Date.now()}.pdf`);
+  const tmpPath = path.join(app.getPath('temp'), `demo-print-${Date.now()}.pdf`);
   try {
     fs.writeFileSync(tmpPath, Buffer.from(bytes));
     const printWin = new BrowserWindow({

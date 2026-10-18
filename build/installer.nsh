@@ -1,7 +1,7 @@
-; installer.nsh — Maaz Dawakhana installer hooks (electron-builder NSIS include)
+; installer.nsh — Demo installer hooks (electron-builder NSIS include)
 ; Custom pages / data-preservation logic. The app saves data in its install
 ; folder when writable; when Windows protects the install folder (e.g. Program
-; Files) it falls back to %APPDATA%\Maaz Dawakhana\data. On uninstall we must
+; Files) it falls back to %APPDATA%\Demo\data. On uninstall we must
 ; never delete user data: copy the install-folder data into a preserved folder
 ; in AppData so nothing is lost.
 
@@ -18,9 +18,9 @@
   ; a later reinstall can pick it up again.
   ClearErrors
   IfFileExists "$INSTDIR\data\*.*" 0 done_preserve
-    CreateDirectory "$APPDATA\Maaz Dawakhana"
-    CreateDirectory "$APPDATA\Maaz Dawakhana\preserved-data"
-    CopyFiles /SILENT "$INSTDIR\data\*.*" "$APPDATA\Maaz Dawakhana\preserved-data\"
+    CreateDirectory "$APPDATA\Demo"
+    CreateDirectory "$APPDATA\Demo\preserved-data"
+    CopyFiles /SILENT "$INSTDIR\data\*.*" "$APPDATA\Demo\preserved-data\"
     RMDir /r "$INSTDIR\data"
   done_preserve:
 !macroend

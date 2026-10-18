@@ -5,7 +5,7 @@
 // app is installed under C:\Program Files), it automatically falls back to a
 // user-writable folder (AppData).
 //
-// Backup files use the shared "maaz-dawakhana-backup" format (schema v1) so
+// Backup files use the shared "demo-bom-backup" format (schema v1) so
 // the same .json file works in the desktop app and the website: groups,
 // products, production, sales and inventory in one payload. The parser is
 // lenient: it accepts our own payload, a bare workspace object, a
@@ -17,7 +17,8 @@ const path = require('path');
 
 const SCHEMA = 1;
 const MAX_AUTO_BACKUPS = 10;
-const BACKUP_FORMAT = 'maaz-dawakhana-backup';
+const BACKUP_FORMAT = 'demo-bom-backup';   // restore also accepts the old
+                                            // 'maaz-dawakhana-backup' files
 const BACKUP_SCHEMA_VERSION = 1;
 const BACKUP_SECTIONS = ['groups', 'products', 'production', 'sales', 'inventory'];
 
@@ -169,7 +170,7 @@ function resolveImportedGroups(normalized) {
   return normalized;
 }
 
-function createStorage({ preferredDir, fallbackDir }) {
+function createStorage({ preferredDir, fallbackDir, legacyDirs = [] }) {
   let activeDir = null;
   let usingFallback = false;
 
@@ -201,7 +202,35 @@ function createStorage({ preferredDir, fallbackDir }) {
     throw new Error('No writable data location found');
   }
 
-  function dataFile() { return path.join(resolveDir(), 'maaz-dawakhana.json'); }
+  const DATA_FILE = 'demo-bom.json';
+  const LEGACY_DATA_FILES = ['maaz-dawakhana.json'];
+
+  function dataFile() { return path.join(resolveDir(), DATA_FILE); }
+
+  // One-way migration: pick up a workspace written by an older build (previous
+  // file name in the same folder, or the old AppData folder) so upgrading or
+  // switching to the demo branding never loses data.
+  function migrateLegacyData() {
+    try {
+      const dir = resolveDir();
+      const target = path.join(dir, DATA_FILE);
+      if (fs.existsSync(target)) return false;
+      for (const srcDir of [dir, ...(legacyDirs || [])]) {
+        for (const legacy of LEGACY_DATA_FILES) {
+          const src = path.join(srcDir, legacy);
+          if (fs.existsSync(src)) {
+            fs.mkdirSync(dir, { recursive: true });
+            fs.copyFileSync(src, target);
+            return true;
+          }
+        }
+      }
+      return false;
+    } catch (err) {
+      console.error('legacy data migration failed:', err.message);
+      return false;
+    }
+  }
   function backupsDir() { return path.join(resolveDir(), 'backups'); }
 
   function stamp() {
@@ -231,6 +260,7 @@ function createStorage({ preferredDir, fallbackDir }) {
 
   function loadData() {
     try {
+      migrateLegacyData();
       const file = dataFile();
       if (!fs.existsSync(file)) return null;
       const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -253,10 +283,10 @@ function createStorage({ preferredDir, fallbackDir }) {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const dir = resolveDir();
-        const tmp = path.join(dir, 'maaz-dawakhana.json.tmp');
+        const tmp = path.join(dir, `${DATA_FILE}.tmp`);
         fs.writeFileSync(tmp, JSON.stringify(payload, null, 2), 'utf8');
-        fs.renameSync(tmp, path.join(dir, 'maaz-dawakhana.json')); // atomic-ish replace
-        return path.join(dir, 'maaz-dawakhana.json');
+        fs.renameSync(tmp, path.join(dir, DATA_FILE)); // atomic-ish replace
+        return path.join(dir, DATA_FILE);
       } catch (err) {
         if (attempt === 0 && !usingFallback && fallbackDir) {
           activeDir = null;
@@ -271,6 +301,7 @@ function createStorage({ preferredDir, fallbackDir }) {
 
   // Make sure a data file exists (creates an empty workspace on first launch).
   function ensureInitialized() {
+    migrateLegacyData();
     if (!fs.existsSync(dataFile())) {
       saveData({ products: [], production: [], sales: [], inventory: [], groups: [] });
     }
@@ -305,7 +336,7 @@ function createStorage({ preferredDir, fallbackDir }) {
     return {
       format: BACKUP_FORMAT,
       schemaVersion: BACKUP_SCHEMA_VERSION,
-      app: 'Maaz Dawakhana',
+      app: 'Demo',
       generatedBy: 'windows',
       exportedAt: new Date().toISOString(),
       counts: BACKUP_SECTIONS.reduce((counts, key) => ({ ...counts, [key]: normalized[key].length }), {}),
@@ -349,7 +380,7 @@ function createStorage({ preferredDir, fallbackDir }) {
     };
     resolveImportedGroups(normalized);
     if (!isValidWorkspace(normalized)) {
-      throw new Error('Not a valid Maaz Dawakhana workspace');
+      throw new Error('Not a valid Demo workspace');
     }
     return normalized;
   }
@@ -362,7 +393,7 @@ function createStorage({ preferredDir, fallbackDir }) {
     } catch { /* ignore */ }
     return {
       dataDir: dir,
-      dataFile: path.join(dir, 'maaz-dawakhana.json'),
+      dataFile: path.join(dir, DATA_FILE),
       backupsDir: path.join(dir, 'backups'),
       autoBackupCount: count,
       location: usingFallback ? 'appdata' : 'app'

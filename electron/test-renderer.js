@@ -80,7 +80,7 @@ virtualConsole.on('error', (...args) => errors.push('console.error: ' + args.joi
     }
     form.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
     await new Promise((resolve) => setTimeout(resolve, 700));
-    const after = JSON.parse(window.localStorage.getItem('maaz-local-data'));
+    const after = JSON.parse(window.localStorage.getItem('demo-local-data'));
     check('product added through UI', after && after.products.some((p) => p.name === 'Test Sharbat'));
     check('product visible in BOM view', document.querySelector('#appView')?.textContent.includes('Test Sharbat'));
   } else {
@@ -127,7 +127,7 @@ virtualConsole.on('error', (...args) => errors.push('console.error: ' + args.joi
     gform.querySelector('[name="name"]').value = 'Test Group';
     gform.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
     await new Promise((resolve) => setTimeout(resolve, 700));
-    const after = JSON.parse(window.localStorage.getItem('maaz-local-data'));
+    const after = JSON.parse(window.localStorage.getItem('demo-local-data'));
     check('group saved to storage', !!(after && after.groups && after.groups.some((g) => g.name === 'Test Group')));
     check('group visible in BOM view', document.querySelector('#appView')?.textContent.includes('Test Group'));
   })();

@@ -16,13 +16,24 @@ const today = new Date();
 $('#todayLabel').textContent = today.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
 // ---- Local storage (desktop app) ----
-// Maaz Dawakhana for Windows saves everything in a local JSON file next to the
+// Demo (BOM & Production) for Windows saves everything in a local JSON file next to the
 // installed app (or the user profile folder when the install folder is
 // protected). No account, no internet, no cloud. Backup & restore are built in.
 const Desktop = window.desktopAPI || {
   // Browser fallback (preview only): keep data in localStorage.
-  loadData: async () => { try { return JSON.parse(localStorage.getItem('maaz-local-data') || 'null'); } catch { return null; } },
-  saveData: async (data) => { try { localStorage.setItem('maaz-local-data', JSON.stringify(data)); } catch { } },
+  loadData: async () => {
+    try {
+      // v1.0.8 renamed the web-fallback key; carry an old workspace over once.
+      let raw = localStorage.getItem('demo-local-data');
+      if (raw === null && localStorage.getItem('maaz-local-data') !== null) {
+        raw = localStorage.getItem('maaz-local-data');
+        localStorage.setItem('demo-local-data', raw);
+        localStorage.removeItem('maaz-local-data');
+      }
+      return JSON.parse(raw || 'null');
+    } catch { return null; }
+  },
+  saveData: async (data) => { try { localStorage.setItem('demo-local-data', JSON.stringify(data)); } catch { } },
   backup: async () => ({ cancelled: true, error: 'Desktop app only' }),
   restore: async () => ({ cancelled: true, error: 'Desktop app only' }),
   paths: async () => ({ dataDir: 'browser preview', dataFile: '' }),
@@ -215,7 +226,7 @@ function createExcelDataSheet(workbook, config) {
   });
   const exportStamp = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   const account = 'Local workspace';
-  addExcelReportHeader(sheet, config.title, `Maaz Dawakhana  •  ${config.scopeLabel || 'All time'}  •  Exported ${exportStamp}  •  ${account}`, count, config.metrics || []);
+  addExcelReportHeader(sheet, config.title, `Demo  •  ${config.scopeLabel || 'All time'}  •  Exported ${exportStamp}  •  ${account}`, count, config.metrics || []);
 
   const headerRowNumber = 7;
   const headerRow = sheet.getRow(headerRowNumber);
@@ -261,7 +272,7 @@ function createExcelDataSheet(workbook, config) {
     sheet.getRow(startRow).height = 24;
   }
 
-  sheet.headerFooter.oddFooter = '&LMaaz Dawakhana&CConfidential workspace export&RPage &P of &N';
+  sheet.headerFooter.oddFooter = '&LDemo&CConfidential workspace export&RPage &P of &N';
   return { sheet, headerRow: headerRowNumber, startRow, endRow: config.rows.length ? startRow + config.rows.length - 1 : startRow };
 }
 
@@ -383,7 +394,7 @@ function createExcelBomSheet(workbook, products) {
     rowNumber += 1;
   });
 
-  sheet.headerFooter.oddFooter = '&LMaaz Dawakhana&CSeparate BOM product sections&RPage &P of &N';
+  sheet.headerFooter.oddFooter = '&LDemo&CSeparate BOM product sections&RPage &P of &N';
   return sheet;
 }
 
@@ -550,7 +561,7 @@ function addExcelDashboard(workbook, exportData, scopeLabel) {
     const imageId = workbook.addImage({ base64: chart.data, extension: 'png' });
     sheet.addImage(imageId, { tl: { col: chart.col, row: chart.row }, ext: { width: 650, height: 295 } });
   });
-  sheet.headerFooter.oddFooter = '&LMaaz Dawakhana&CExecutive dashboard&RPage &P of &N';
+  sheet.headerFooter.oddFooter = '&LDemo&CExecutive dashboard&RPage &P of &N';
   return sheet;
 }
 
@@ -692,13 +703,13 @@ async function exportAllDataToExcel(filter = { preset: 'all', start: null, end: 
   notify(`Building workbook · ${scopeLabel}`);
   try {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Maaz Dawakhana Production Control';
-    workbook.lastModifiedBy = 'Maaz Dawakhana (local edition)';
+    workbook.creator = 'Demo Production Control';
+    workbook.lastModifiedBy = 'Demo (local edition)';
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.title = 'BOM, Production, Sales and Inventory Export';
     workbook.subject = `${scopeLabel} cloud workspace export`;
-    workbook.company = 'Maaz Dawakhana';
+    workbook.company = 'Demo';
     workbook.calcProperties.fullCalcOnLoad = true;
 
     createExcelBomSheet(workbook, exportData.products);
@@ -778,7 +789,7 @@ async function exportAllDataToExcel(filter = { preset: 'all', start: null, end: 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Maaz_Dawakhana_${exportFileRangeSlug(filter)}.xlsx`;
+    link.download = `Demo_BOM_${exportFileRangeSlug(filter)}.xlsx`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -1562,7 +1573,7 @@ applyTheme(currentTheme(), false);
    BACKUP & RESTORE  (portable JSON — website  <->  Windows software)
    File shape:
    {
-     "format": "maaz-dawakhana-backup",
+     "format": "demo-bom-backup",
      "schemaVersion": 1,
      "generatedBy": "website",
      "exportedAt": "<ISO timestamp>",
@@ -1574,7 +1585,7 @@ applyTheme(currentTheme(), false);
    wrapper, PascalCase keys, and dd/mm/yyyy or ISO date-times, so a file
    written by the Windows app restores here without conversion.
    ===================================================================== */
-const BACKUP_FORMAT = 'maaz-dawakhana-backup';
+const BACKUP_FORMAT = 'demo-bom-backup';
 const BACKUP_SCHEMA_VERSION = 1;
 const BACKUP_SECTIONS = ['groups', 'products', 'production', 'sales', 'inventory'];
 
@@ -1702,7 +1713,7 @@ function buildBackupPayload() {
   return {
     format: BACKUP_FORMAT,
     schemaVersion: BACKUP_SCHEMA_VERSION,
-    app: 'Maaz Dawakhana',
+    app: 'Demo',
     generatedBy: 'windows',
     exportedAt: new Date().toISOString(),
     counts: BACKUP_SECTIONS.reduce((counts, key) => ({ ...counts, [key]: data[key].length }), {}),
@@ -1714,7 +1725,7 @@ function downloadBackupFile() {
   try {
     const payload = buildBackupPayload();
     const stamp = new Date();
-    const name = `maaz-dawakhana-backup-${toISODate(stamp)}-${String(stamp.getHours()).padStart(2, '0')}${String(stamp.getMinutes()).padStart(2, '0')}.json`;
+    const name = `demo-bom-backup-${toISODate(stamp)}-${String(stamp.getHours()).padStart(2, '0')}${String(stamp.getMinutes()).padStart(2, '0')}.json`;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

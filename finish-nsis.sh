@@ -14,11 +14,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 ROOT="$(pwd)"
 
-APP_EXE="$ROOT/release/win-unpacked/Maaz Dawakhana.exe"
-STUB="$ROOT/release/Maaz-Dawakhana-Setup-1.0.7.exe"
-UNINST="$ROOT/release/__uninstaller-nsis-maaz-dawakhana-desktop.exe"
-ARCHIVE="$ROOT/release/maaz-dawakhana-desktop-1.0.7-x64.nsis.7z"
-OUT="$ROOT/release/Maaz-Dawakhana-Setup-1.0.7.exe"
+APP_EXE="$ROOT/release/win-unpacked/Demo.exe"
+STUB="$ROOT/release/Demo-BOM-Production-Setup-1.0.8.exe"
+UNINST="$ROOT/release/__uninstaller-nsis-demo-bom-production.exe"
+ARCHIVE="$ROOT/release/demo-bom-production-1.0.8-x64.nsis.7z"
+OUT="$ROOT/release/Demo-BOM-Production-Setup-1.0.8.exe"
 MAKENSIS="$HOME/.cache/electron-builder/nsis/nsis-3.0.4.1/linux/makensis"
 SEVENZA="$ROOT/node_modules/7zip-bin/linux/x64/7za"
 NSIS_TEMPLATES="$ROOT/node_modules/app-builder-lib/templates/nsis"
@@ -51,31 +51,31 @@ echo "== 4. second makensis pass =="
 cd "$NSIS_TEMPLATES"
 export NSISDIR="$HOME/.cache/electron-builder/nsis/nsis-3.0.4.1"
 LC_ALL=C.UTF-8 "$MAKENSIS" -WX -INPUTCHARSET UTF8 \
-  -DAPP_ID=com.maazdawakhana.desktop \
+  -DAPP_ID=com.demo.bomproduction \
   -DAPP_GUID=cc9966fa-80d1-5f13-9449-b707098f876a \
   -DUNINSTALL_APP_KEY=cc9966fa-80d1-5f13-9449-b707098f876a \
-  -DPRODUCT_NAME=Maaz\ Dawakhana \
-  -DPRODUCT_FILENAME=Maaz\ Dawakhana \
-  -DAPP_FILENAME=Maaz\ Dawakhana \
-  "-DAPP_DESCRIPTION=Maaz Dawakhana — BOM & Production Control for Windows. Local data, no login." \
+  -DPRODUCT_NAME=Demo \
+  -DPRODUCT_FILENAME=Demo \
+  -DAPP_FILENAME=Demo \
+  "-DAPP_DESCRIPTION=Demo — BOM & Production Control for Windows. Local data, no login." \
   -DVERSION=1.0.7 \
   "-DPROJECT_DIR=$ROOT" \
   "-DBUILD_RESOURCES_DIR=$ROOT/build" \
-  -DAPP_PACKAGE_NAME=maaz-dawakhana-desktop \
+  -DAPP_PACKAGE_NAME=demo-bom-production \
   "-DMUI_ICON=$ROOT/build/icon.ico" \
   "-DMUI_UNICON=$ROOT/build/icon.ico" \
   "-DAPP_64=$ARCHIVE" \
-  -DAPP_64_NAME=maaz-dawakhana-desktop-1.0.7-x64.nsis.7z \
+  -DAPP_64_NAME=demo-bom-production-1.0.8-x64.nsis.7z \
   -DAPP_64_HASH="$HASH" \
   -DAPP_64_UNPACKED_SIZE="$SIZE_KB" \
-  -DCOMPANY_NAME=Maaz\ Dawakhana \
-  '-DAPP_INSTALLER_STORE_FILE=maaz-dawakhana-desktop-updater\installer.exe' \
+  -DCOMPANY_NAME=Demo \
+  '-DAPP_INSTALLER_STORE_FILE=demo-bom-production-updater\installer.exe' \
   -DCOMPRESSION_METHOD=7z \
   -DMULTIUSER_INSTALLMODE_ALLOW_ELEVATION \
   -DINSTALL_MODE_PER_ALL_USERS_REQUIRED \
   -DallowToChangeInstallationDirectory \
-  -DSHORTCUT_NAME=Maaz\ Dawakhana \
-  -DUNINSTALL_DISPLAY_NAME=Maaz\ Dawakhana\ 1.0.7 \
+  -DSHORTCUT_NAME=Demo \
+  -DUNINSTALL_DISPLAY_NAME=Demo\ 1.0.8 \
   '-DMUI_WELCOMEFINISHPAGE_BITMAP=${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp' \
   '-DMUI_UNWELCOMEFINISHPAGE_BITMAP=${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp' \
   -DESTIMATED_SIZE="$SIZE_KB" \
@@ -83,12 +83,12 @@ LC_ALL=C.UTF-8 "$MAKENSIS" -WX -INPUTCHARSET UTF8 \
   "-DUNINSTALLER_OUT_FILE=$UNINST" \
   "-XOutFile $OUT" \
   '-XVIProductVersion 1.0.7.0' \
-  '-XVIAddVersionKey /LANG=1033 ProductName "Maaz Dawakhana"' \
+  '-XVIAddVersionKey /LANG=1033 ProductName "Demo"' \
   '-XVIAddVersionKey /LANG=1033 ProductVersion "1.0.7"' \
-  '-XVIAddVersionKey /LANG=1033 LegalCopyright "Copyright © 2026 Maaz Dawakhana"' \
-  '-XVIAddVersionKey /LANG=1033 FileDescription "Maaz Dawakhana — BOM & Production Control for Windows. Local data, no login."' \
+  '-XVIAddVersionKey /LANG=1033 LegalCopyright "Copyright © 2026 Demo"' \
+  '-XVIAddVersionKey /LANG=1033 FileDescription "Demo — BOM & Production Control for Windows. Local data, no login."' \
   '-XVIAddVersionKey /LANG=1033 FileVersion "1.0.7"' \
-  '-XVIAddVersionKey /LANG=1033 CompanyName "Maaz Dawakhana"' \
+  '-XVIAddVersionKey /LANG=1033 CompanyName "Demo"' \
   '-XUnicode true' \
   '-XSetCompressor zlib' \
   - < "$ROOT/release/nsis-script.nsi"
@@ -110,5 +110,5 @@ console.log('NOTE: makensis embedded the CRC at compile time; no post-processing
 "
 
 echo
-ls -la release/Maaz-Dawakhana-Setup-1.0.7.exe
+ls -la release/Demo-BOM-Production-Setup-1.0.8.exe
 echo "DONE — installer is untouched by post-processing, NSIS data intact."

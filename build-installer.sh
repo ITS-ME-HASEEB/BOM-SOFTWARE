@@ -28,4 +28,4 @@ echo "== D. finish the installer =="
 ./finish-nsis.sh
 
 echo
-echo "INSTALLER READY: release/Maaz-Dawakhana-Setup-1.0.7.exe"
+echo "INSTALLER READY: release/Demo-BOM-Production-Setup-1.0.8.exe"

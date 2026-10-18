@@ -1,6 +1,6 @@
-# Maaz Dawakhana — Windows Desktop Edition
+# Demo — Windows Desktop Edition
 
-The Maaz Dawakhana BOM & Production Control app, converted from the Firebase
+The Demo BOM & Production Control app (demo branding of the BOM software), converted from the Firebase
 website into a **fully offline Windows application**:
 
 - ❌ **No login system** — the app opens straight into the dashboard.
@@ -22,9 +22,9 @@ website into a **fully offline Windows application**:
 
 ## Install on Windows
 
-1. Download `Maaz-Dawakhana-Setup-1.0.1.exe`.
+1. Download `Demo-BOM-Production-Setup-1.0.8.exe`.
 2. Double-click it and follow the installer. You can pick your own folder.
-3. Launch **Maaz Dawakhana** from the desktop or Start menu.
+3. Launch **Demo** from the desktop or Start menu.
 4. Done — no account, no email, no password.
 
 > Windows may show a blue "Windows protected your PC" (SmartScreen) screen
@@ -38,7 +38,7 @@ website into a **fully offline Windows application**:
 
 | Item | Location |
 |---|---|
-| Main data file | `<install folder>\data\maaz-dawakhana.json` *(or user AppData folder if the install folder is protected, e.g. Program Files)* |
+| Main data file | `<install folder>\data\demo-bom.json` *(or user AppData folder if the install folder is protected, e.g. Program Files)* |
 | Automatic backups (last 10, made at every launch) | `<install folder>\data\backups\auto-*.json` |
 | Manual backups (your choice) | wherever you save them |
 
@@ -49,7 +49,7 @@ The data file is plain JSON, so you can also read/copy it manually at any time.
 - **Backup data…** (sidebar button, or menu *File → Backup data…*, or `Ctrl+B`)
   — saves a dated backup file wherever you choose. Keep it on a USB stick,
   email it to yourself, whatever.
-- **Restore data…** (`Ctrl+R`) — pick a backup file (or any Maaz Dawakhana
+- **Restore data…** (`Ctrl+R`) — pick a backup file (or any Demo
   JSON) and the app replaces the current workspace with it. A safety
   auto-backup of the current data is taken first.
 - **Reset workspace** — wipes the workspace to start fresh.
@@ -66,7 +66,7 @@ If you used the online version and want your existing records here:
 ## Uninstalling
 
 When you uninstall the app, your `data` folder is **preserved** at
-`%APPDATA%\Maaz Dawakhana\preserved-data` automatically. Reinstall the app
+`%APPDATA%\Demo\preserved-data` automatically. Reinstall the app
 and use **Restore data…** to bring your records back.
 
 ---
@@ -109,3 +109,19 @@ The UI is the original website code with these changes:
 - Excel/PDF downloads now use native Windows save dialogs.
 - Sidebar now has **Backup data…** and **Restore data…** buttons plus a
   "Local workspace" status showing the data file path.
+
+## Demo branding & assets (v1.0.8)
+
+This build is branded as a generic **Demo — BOM & Production** workspace:
+
+- App name, window title, menus and installer: `Demo` (tagline `BOM & Production`).
+- Logo: `app/logo.png` and `build/icon.ico` are generated from the source mark in
+  `assets/demo-logo-raw.png` with `npm run build:logo`.
+- Printed invoice: `app/template.pdf` is regenerated with `npm run build:invoice`
+  (`tools/make-invoice-template.mjs`). It carries only the demo logo/name plus
+  placeholder contact lines — no third-party name, logo, website or phone number,
+  and no clickable links.
+- Data files were renamed to `demo-bom.json` (backup format `demo-bom-backup`).
+  Workspaces from older builds — `maaz-dawakhana.json`, `maaz-dawakhana-backup`
+  files, the previous `%APPDATA%` data folder and the old browser localStorage
+  key — are migrated automatically on first launch, so no existing data is lost.
