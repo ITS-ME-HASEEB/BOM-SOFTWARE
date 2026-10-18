@@ -29,15 +29,15 @@ console.log('replaced icon groups:', groupIds.join(', '));
 const viList = ResEdit.Resource.VersionInfo.fromEntries(res.entries);
 if (!viList.length) { console.error('no version info found'); process.exit(1); }
 viList.forEach((vi) => {
-  vi.setFileVersion(1, 0, 7, 0, 1033);
-  vi.setProductVersion(1, 0, 7, 0, 1033);
+  vi.setFileVersion(1, 0, 8, 0, 1033);
+  vi.setProductVersion(1, 0, 8, 0, 1033);
   vi.setStringValues({ lang: 1033, codepage: 1200 }, {
-    FileDescription: 'Maaz Dawakhana Production Control',
-    ProductName: 'Maaz Dawakhana',
-    CompanyName: 'Maaz Dawakhana',
-    LegalCopyright: 'Maaz Dawakhana',
-    InternalName: 'Maaz Dawakhana',
-    OriginalFilename: 'Maaz Dawakhana.exe'
+    FileDescription: 'Demo BOM & Production Control',
+    ProductName: 'Demo',
+    CompanyName: 'Demo',
+    LegalCopyright: 'Demo',
+    InternalName: 'Demo',
+    OriginalFilename: 'Demo.exe'
   });
   vi.outputToResourceEntries(res.entries);
 });

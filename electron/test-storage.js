@@ -23,7 +23,7 @@ assert.strictEqual(storage.loadData(), null);
 // 1b. ensureInitialized creates an empty workspace on first launch (fixes "no backup data found")
 const init = storage.ensureInitialized();
 assert.ok(init && Array.isArray(init.products) && init.products.length === 0);
-assert.ok(fs.existsSync(path.join(dir, 'maaz-dawakhana.json')), 'data file created on first launch');
+assert.ok(fs.existsSync(path.join(dir, 'demo-bom.json')), 'data file created on first launch');
 
 // 2. save + load round-trip
 storage.saveData(sample);
@@ -31,7 +31,7 @@ const loaded = storage.loadData();
 assert.deepStrictEqual(loaded, sample);
 
 // 3. file exists on disk next to app data dir
-assert.ok(fs.existsSync(path.join(dir, 'maaz-dawakhana.json')));
+assert.ok(fs.existsSync(path.join(dir, 'demo-bom.json')));
 
 // 4. autoBackup creates dated copy and prunes
 for (let i = 0; i < 14; i++) storage.autoBackup();
@@ -40,8 +40,8 @@ assert.ok(backups.length <= 10, `expected <=10 auto backups, got ${backups.lengt
 
 // 5. backup payload wraps data with schema
 const payload = storage.makeBackupPayload(sample);
-assert.strictEqual(payload.app, 'Maaz Dawakhana');
-assert.strictEqual(payload.format, 'maaz-dawakhana-backup');
+assert.strictEqual(payload.app, 'Demo');
+assert.strictEqual(payload.format, 'demo-bom-backup');
 assert.strictEqual(payload.schemaVersion, 1);
 assert.strictEqual(payload.generatedBy, 'windows');
 assert.deepStrictEqual(payload.data.products, sample.products);
@@ -65,13 +65,13 @@ assert.throws(() => storage.parseBackupFile(path.join(dir, 'bad.json')));
 // 8. paths()
 const p = storage.paths();
 assert.strictEqual(p.dataDir, dir);
-assert.ok(p.dataFile.endsWith('maaz-dawakhana.json'));
+assert.ok(p.dataFile.endsWith('demo-bom.json'));
 
 // 9. invalid save rejected
 assert.throws(() => storage.saveData({ products: 'nope' }));
 
 // 10. tolerant raw workspace JSON load (old web export shape)
-fs.writeFileSync(path.join(dir, 'maaz-dawakhana.json'), JSON.stringify(sample));
+fs.writeFileSync(path.join(dir, 'demo-bom.json'), JSON.stringify(sample));
 assert.deepStrictEqual(storage.loadData(), sample);
 
 // 11. unwritable preferred dir -> automatic fallback (fixes EPERM restore in Program Files)
@@ -82,7 +82,7 @@ const fbStorage = createStorage({ preferredDir: path.join(blocker, 'data'), fall
 fbStorage.ensureInitialized();
 const fp = fbStorage.paths();
 assert.strictEqual(fp.location, 'appdata', 'should report appdata fallback');
-assert.ok(fs.existsSync(path.join(fallbackDir, 'maaz-dawakhana.json')), 'data saved in fallback dir');
+assert.ok(fs.existsSync(path.join(fallbackDir, 'demo-bom.json')), 'data saved in fallback dir');
 fbStorage.saveData(sample);
 assert.deepStrictEqual(fbStorage.loadData(), sample, 'fallback storage round-trips');
 fs.unlinkSync(blocker);
@@ -109,7 +109,7 @@ assert.deepStrictEqual(storage.loadData().groups, [], 'missing groups default to
 
 // 12. shared backup format payload
 const payload2 = storage.makeBackupPayload(withGroups);
-assert.strictEqual(payload2.format, 'maaz-dawakhana-backup');
+assert.strictEqual(payload2.format, 'demo-bom-backup');
 assert.strictEqual(payload2.schemaVersion, 1);
 assert.strictEqual(payload2.generatedBy, 'windows');
 assert.strictEqual(payload2.counts.groups, 2);
@@ -155,6 +155,30 @@ assert.strictEqual(parsedPascal.production[0].date, '2026-08-21', 'dd/mm/yyyy no
 assert.strictEqual(parsedPascal.sales[0].date, '2026-08-21');
 assert.strictEqual(parsedPascal.inventory[0].date, '2026-08-21');
 assert.strictEqual(parsedPascal.inventory[0].quantity, 100);
+
+// ---- v1.0.8 rebrand: renamed data file + legacy migration ----
+
+// 16. an old maaz-dawakhana.json in the same folder is picked up and migrated
+const legacyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'demo-legacy-'));
+fs.writeFileSync(path.join(legacyDir, 'maaz-dawakhana.json'), JSON.stringify({ schema: 1, data: sample }));
+const legacyStorage = createStorage({ preferredDir: legacyDir, fallbackDir: null });
+assert.deepStrictEqual(legacyStorage.loadData(), sample, 'legacy data file loads under the new branding');
+assert.ok(fs.existsSync(path.join(legacyDir, 'demo-bom.json')), 'legacy file copied to demo-bom.json');
+assert.ok(legacyStorage.paths().dataFile.endsWith('demo-bom.json'));
+
+// 17. legacy AppData-style folder is scanned via legacyDirs
+const freshDir = fs.mkdtempSync(path.join(os.tmpdir(), 'demo-fresh-'));
+const oldAppDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'demo-oldapp-'));
+fs.writeFileSync(path.join(oldAppDataDir, 'maaz-dawakhana.json'), JSON.stringify(sample));
+const migratedStorage = createStorage({ preferredDir: freshDir, fallbackDir: null, legacyDirs: [oldAppDataDir] });
+assert.deepStrictEqual(migratedStorage.loadData(), sample, 'workspace migrated from the old AppData folder');
+assert.ok(fs.existsSync(path.join(freshDir, 'demo-bom.json')), 'migrated file lives in the new data dir');
+
+// 18. backups written by the old build (maaz-dawakhana-backup) still restore
+const legacyBackupPath = path.join(freshDir, 'legacy-backup.json');
+fs.writeFileSync(legacyBackupPath, JSON.stringify({ format: 'maaz-dawakhana-backup', schemaVersion: 1, data: sample }));
+const parsedLegacyBackup = migratedStorage.parseBackupFile(legacyBackupPath);
+assert.strictEqual(parsedLegacyBackup.products[0].name, 'Sharbat Rose', 'old-format backup restores');
 
 console.log('storage tests (incl. groups + shared backup format): ALL PASS');
 
