@@ -43,7 +43,17 @@ jobs:
         run: node -e "const f='package.json';const p=require('./'+f);p.build.win.signAndEditExecutable=true;require('fs').writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
 
       - name: Build the Windows installer
-        run: npm run dist
+        shell: bash
+        run: |
+          # Keep a log; on failure publish its tail to the job summary so the
+          # error is visible from the Checks API without downloading Azure logs.
+          set +e
+          npm run dist 2>&1 | tee dist.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            { echo '### electron-builder failure (last 80 log lines)'; echo '```'; tail -n 80 dist.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
 
       - name: Upload installer as a build artifact
         uses: actions/upload-artifact@v4

@@ -184,13 +184,13 @@ def ico_entry_bmp(size, px):
 
 
 def write_ico(path, sizes, master, msize):
+    # Pure uncompressed BMP entries only: widest compatibility with rcedit,
+    # NSIS and electron-builder's icon parsers (PNG-compressed 256 entries are
+    # rejected by some Windows tooling).
     entries = []
     for s in sizes:
         px = master if s == msize else resample(master, msize, msize, s, s)
-        if s == 256:
-            entries.append((s, png_bytes(s, px), True))
-        else:
-            entries.append((s, ico_entry_bmp(s, px), False))
+        entries.append((s, ico_entry_bmp(s, px), False))
     out = struct.pack('<HHH', 0, 1, len(entries))
     offset = 6 + 16 * len(entries)
     directory = b''
@@ -198,23 +198,6 @@ def write_ico(path, sizes, master, msize):
         directory += struct.pack('<BBBBHHII', s & 255, s & 255, 0, 0, 1, 32, len(payload), offset)
         offset += len(payload)
     path.write_bytes(out + directory + b''.join(p for _, p, _ in entries))
-
-
-def png_bytes(size, px):
-    raw = bytearray()
-    stride = size * 4
-    for y in range(size):
-        raw.append(0)
-        raw += px[y * stride:(y + 1) * stride]
-
-    def chunk(typ, payload):
-        c = struct.pack('>I', len(payload)) + typ + payload
-        return c + struct.pack('>I', zlib.crc32(typ + payload) & 0xffffffff)
-
-    return (b'\x89PNG\r\n\x1a\n'
-            + chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0))
-            + chunk(b'IDAT', zlib.compress(bytes(raw), 9))
-            + chunk(b'IEND', b''))
 
 
 def main():
