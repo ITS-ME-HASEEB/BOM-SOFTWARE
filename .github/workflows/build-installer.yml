@@ -1,0 +1,62 @@
+# Build Windows installer — GitHub Actions recipe.
+#
+# What this does: whenever a version tag (v...) is pushed — or the workflow is
+# started by hand from the Actions tab — GitHub rents a free Windows machine,
+# builds the NSIS installer with electron-builder, and publishes it:
+#   * as a downloadable artifact on the Actions run page
+#   * as an asset on a GitHub Release (the permanent public download page)
+#
+# No secrets or signing certificates are needed; the exe is unsigned.
+
+name: Build Windows installer
+
+on:
+  workflow_dispatch: # manual "Run workflow" button in the Actions tab
+  push:
+    tags:
+      - 'v*' # any tag like v1.0.8 triggers a build + release
+
+permissions:
+  contents: write # allows the job to create the GitHub Release
+
+jobs:
+  windows-installer:
+    name: Build NSIS installer
+    runs-on: windows-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Enable exe icon + version stamping
+        # electron-builder skips exe editing by default (that flag exists for
+        # the Linux no-wine pipeline). On GitHub's Windows runner we can let it
+        # stamp the Demo icon and version info into the exe natively.
+        run: node -e "const f='package.json';const p=require('./'+f);p.build.win.signAndEditExecutable=true;require('fs').writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
+
+      - name: Build the Windows installer
+        run: npm run dist
+
+      - name: Upload installer as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: release/Demo-BOM-Production-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Publish installer to a GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Demo ${{ github.ref_name }} — Windows installer
+          make_latest: true
+          files: release/Demo-BOM-Production-Setup-*.exe
